@@ -1,5 +1,5 @@
 import { firebase } from "../firebase-common";
-import { BannerOptions, InterstitialOptions } from "./admob";
+import { BannerOptions, InterstitialOptions, RewardedOption } from "./admob";
 import { AD_SIZE, BANNER_DEFAULTS } from "./admob-common";
 import * as appModule from "tns-core-modules/application";
 import { topmost } from "tns-core-modules/ui/frame";
@@ -170,6 +170,57 @@ export function showInterstitial(arg?: InterstitialOptions): Promise<any> {
       firebase.admob.interstitialView.loadAd(ad);
     } catch (ex) {
       console.log("Error in firebase.admob.showInterstitial: " + ex);
+      reject(ex);
+    }
+  });
+}
+
+export function preloadRewardedVideo(arg?: RewardedOption): Promise<any> {
+  return new Promise((resolve, reject) => {
+    try {
+      const settings = firebase.merge(arg, BANNER_DEFAULTS);
+      const activity = appModule.android.foregroundActivity || appModule.android.startActivity;
+      firebase.admob.rewardedVideoView = com.google.android.gms.ads.MobileAds.getRewardedVideoAdInstance(activity);
+      firebase.admob.interstitialView.setAdUnitId(settings.androidInterstitialId);
+
+      const RewardedVideoAdListener = com.google.android.gms.ads.reward.RewardedVideoAdListener.extend({
+        onRewarded(reward) {
+          arg.rewardCallback(reward);
+        },
+        onRewardedVideoAdLeftApplication() {
+        },
+        onRewardedVideoAdClosed() {
+          if (firebase.admob.rewardedVideoView) {
+            firebase.admob.rewardedVideoView.setRewardedVideoAdListener(null);
+            firebase.admob.rewardedVideoView = null;
+          }
+        },
+        onRewardedVideoAdFailedToLoad(errorCode) {
+          reject(errorCode);
+        }
+      });
+      firebase.admob.rewardedVideoView.setRewardedVideoAdListener(new RewardedVideoAdListener());
+      const ad = _buildAdRequest(settings);
+      firebase.admob.rewardedVideoView.loadAd(ad);
+
+    } catch (ex) {
+      console.log("Error in firebase.admob.preloadRewardedVideo: " + ex);
+      reject(ex);
+    }
+  });
+}
+
+export function showRewardedVideoAd(): Promise<any> {
+  return new Promise((resolve, reject) => {
+    try {
+      if (firebase.admob.rewardedVideoView) {
+        firebase.admob.rewardedVideoView.show();
+        resolve();
+      } else {
+        reject("Please call 'showRewardedVideoAd' first.");
+      }
+    } catch (ex) {
+      console.log("Error in firebase.admob.showRewardedVideoAd: " + ex);
       reject(ex);
     }
   });

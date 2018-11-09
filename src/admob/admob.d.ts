@@ -104,6 +104,33 @@ export interface InterstitialOptions {
   adCallback?: () => void;
 }
 
+export interface RewardedOption {
+/**
+   * When false (default) you'll get real banners.
+   */
+  testing?: boolean;
+
+  /**
+   * Something like "ca-app-pub-AAAAAAAA/BBBBBBB".
+   */
+  androidRewardedId?: string;
+
+  /**
+   * Something like "ca-app-pub-XXXXXX/YYYYYY".
+   */
+  iosRewardedId?: string;
+
+  /**
+   * If testing is true, the simulator is allowed to receive test banners.
+   * Android automatically add the connceted device as test device, but iOS does not.
+   * If you also want to test on real devices, add it here like this:
+   *   ["ce97330130c9047ce0d4430d37d713b1", ".."]
+   */
+  iosTestDeviceIds?: string[];
+
+  rewardCallback?: (reward) => void;
+}
+
 export declare function showBanner(options: BannerOptions): Promise<any>;
 
 export declare function hideBanner(): Promise<any>;

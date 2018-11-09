@@ -1,5 +1,5 @@
 import { firebase } from "../firebase-common";
-import { BannerOptions, InterstitialOptions } from "./admob";
+import { BannerOptions, InterstitialOptions, RewardedOption } from "./admob";
 import { device } from "tns-core-modules/platform/platform";
 import { DeviceType } from "tns-core-modules/ui/enums/enums";
 import { ios as iOSUtils } from "tns-core-modules/utils/utils";
@@ -188,6 +188,45 @@ export function showInterstitial(arg?: InterstitialOptions): Promise<any> {
     }
   });
 }
+
+/* HELP NEEDED
+export function preloadRewardedVideo(arg?: RewardedOption): Promise<any> {
+  return new Promise((resolve,reject) => {
+    try {
+      if (typeof (GADRequest) === "undefined") {
+        reject("Uncomment AdMob in the plugin's Podfile first");
+        return;
+      }
+      const settings = firebase.merge(arg, BANNER_DEFAULTS);
+      firebase.admob.rewardedVideoView = GADInterstitial.alloc().initWithAdUnitID(settings.iosInterstitialId);
+
+    } catch (ex) {
+      console.log("Error in firebase.admob.preloadRewardedVideo: " + ex);
+      reject(ex);
+    }
+  });
+}
+
+export function showRewardedVideoAd(): Promise<any> {
+  return new Promise((resolve, reject) => {
+    try {
+      if (typeof (GADRequest) === "undefined") {
+        reject("Uncomment AdMob in the plugin's Podfile first");
+        return;
+      }
+      if (firebase.admob.rewardedVideoView) {
+        firebase.admob.rewardedVideoView.presentFromRootViewController(iOSUtils.getter(UIApplication, UIApplication.sharedApplication).keyWindow.rootViewController);
+        resolve();
+      } else {
+        reject("Please call 'showRewardedVideoAd' first");
+      }
+    } catch (ex) {
+      console.log("Error in firebase.admob.showRewardedVideoAd: " + ex);
+      reject(ex);
+    }
+  });
+}
+*/
 
 export function hideBanner(): Promise<any> {
   return new Promise((resolve, reject) => {
