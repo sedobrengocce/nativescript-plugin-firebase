@@ -188,8 +188,7 @@ export function showInterstitial(arg?: InterstitialOptions): Promise<any> {
     }
   });
 }
-
-/* HELP NEEDED
+/*
 export function preloadRewardedVideo(arg?: RewardedOption): Promise<any> {
   return new Promise((resolve,reject) => {
     try {
@@ -198,7 +197,39 @@ export function preloadRewardedVideo(arg?: RewardedOption): Promise<any> {
         return;
       }
       const settings = firebase.merge(arg, BANNER_DEFAULTS);
-      firebase.admob.rewardedVideoView = GADInterstitial.alloc().initWithAdUnitID(settings.iosInterstitialId);
+
+      let delegate = GADRewardBasedVideoAdDelegateImpl.new().initWithCallback((ad: GADRewardBasedVideoAd, error: GADRequestError) => {
+        if (error) {
+          reject(error.localizedDescription);
+        } else {
+          resolve();
+        }
+        CFRelease(delegate);
+        delegate = undefined;
+      })
+
+      CFRetain(delegate);
+      
+      const adRequest = GADRequest.request();
+
+      if (settings.testing) {
+        let testDevices: any = [];
+        try {
+          testDevices.push(kGADSimulatorID);
+        } catch (ignore) {
+          // can happen on a real device
+        }
+        if (settings.iosTestDeviceIds) {
+          testDevices = testDevices.concat(settings.iosTestDeviceIds);
+        }
+        adRequest.testDevices = testDevices;
+      }
+
+      firebase.admob.rewardedVideoView = GADRewardBasedVideoAd.alloc().loadRequestWithAdUnitID(adRequest, settings.iosInterstitialId);
+
+      firebase.admob.rewardedVideoView.delegate = delegate;
+
+
 
     } catch (ex) {
       console.log("Error in firebase.admob.preloadRewardedVideo: " + ex);
@@ -206,7 +237,7 @@ export function preloadRewardedVideo(arg?: RewardedOption): Promise<any> {
     }
   });
 }
-
+*/
 export function showRewardedVideoAd(): Promise<any> {
   return new Promise((resolve, reject) => {
     try {
@@ -226,7 +257,6 @@ export function showRewardedVideoAd(): Promise<any> {
     }
   });
 }
-*/
 
 export function hideBanner(): Promise<any> {
   return new Promise((resolve, reject) => {
@@ -279,7 +309,38 @@ function _getBannerType(size): any {
     return {"size": {"width": -1, "height": -1}, "flags": 0};
   }
 }
+/*
+class GADRewardBasedVideoAdDelegateImpl extends NSObject implements GADRewardBasedVideoAdDelegate {
 
+  public static ObjCProtocols = [];
+
+  static new(): GADRewardBasedVideoAdDelegateImpl {
+    if (GADRewardBasedVideoAdDelegateImpl.ObjCProtocols.length === 0 && typeof (GADRewardBasedVideoAdDelegate) !== "undefined") {
+      GADRewardBasedVideoAdDelegateImpl.ObjCProtocols.push(GADRewardBasedVideoAdDelegate);
+    }
+    return <GADRewardBasedVideoAdDelegateImpl>super.new();
+  }
+
+  private callback: (ad: GADRewardBasedVideoAd, error?: GADRequestError) => void;
+
+  public initWithCallback(callback: (ad: GADRewardBasedVideoAd, error?: GADRequestError) => void): GADRewardBasedVideoAdDelegateImpl {
+    this.callback = callback;
+    return this;
+  }
+
+  public rewardBasedVideoAdDidRewardUserWithReward(ad: GADRewardBasedVideoAd, reward: GADAdReward): void {
+
+  }
+
+  public rewardBasedVideoAdDidReceiveAd?(ad: GADRewardBasedVideoAd): void {
+    this.callback(ad);
+  }
+
+  public rewardBasedVideoAdDidFailToLoadWithError?(ad: GADRewardBasedVideoAd, error: NSError): void {
+    this.callback(ad, error);
+  }
+}
+*/
 class GADInterstitialDelegateImpl extends NSObject implements GADInterstitialDelegate {
   public static ObjCProtocols = [];
   onAdCloseCallback: () => void;
